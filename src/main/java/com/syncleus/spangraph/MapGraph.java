@@ -80,12 +80,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         return edgeCollection().size();
     }
 
-    public enum FileType {
-        JAVA,
-        GML,
-        GRAPHML,
-        GRAPHSON
-    }
+
 
     protected MapGraph() {
         super();
@@ -230,9 +225,17 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         return this.vertices.values();
     }
 
+    /*
+     * Return an iterable to all the vertices in the graph that have a particular key/value property.
+     * If this is not possible for the implementation, then an UnsupportedOperationException can be thrown.
+     * The graph implementation should use indexing structures to make this efficient else a full vertex-filter scan is required.
+     */
     @Override
     public Iterable<Vertex> getVertices(String s, Object o) {
-        return null;
+        //TODO write a subclass with a property->vertex reverse index
+        return Iterables.filter(getVertices(),
+                v -> ((MVertex)v).hasProperty(s, o)
+        );
     }
 
     public Iterable<Edge> getEdges() {
@@ -242,7 +245,10 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
     @Override
     public Iterable<Edge> getEdges(String s, Object o) {
-        return null;
+        //TODO write a subclass with a property->edge reverse index
+        return Iterables.filter(getEdges(),
+                e -> ((MEdge)e).hasProperty(s, o)
+        );
     }
 
     public void removeVertex(final Vertex vertex) {
@@ -418,6 +424,12 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             this.id = id;
         }
 
+        public boolean hasProperty(String k, Object value) {
+            if (properties == null) return false;
+            Serializable x = properties.get(k);
+            if (x == null) return false;
+            return x.equals(value);
+        }
 
 
         public Map<String, Serializable> prop(final boolean createIfMissing) {
