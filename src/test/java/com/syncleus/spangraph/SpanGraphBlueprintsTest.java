@@ -1,89 +1,24 @@
 package com.syncleus.spangraph;
 
-import com.tinkerpop.blueprints.*;
-import com.tinkerpop.blueprints.impls.GraphTest;
+import com.tinkerpop.blueprints.Graph;
 
-import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * https://github.com/tinkerpop/blueprints/wiki/Property-Graph-Model-Test-Suite
  */
-public class SpanGraphBlueprintsTest extends GraphTest {
+public class SpanGraphBlueprintsTest extends MapGraphBlueprintsTest {
 
-    public void testVertexTestSuite() throws Exception {
-        this.stopWatch();
-        doTestSuite(new VertexTestSuite(this));
-        printTestPerformance("VertexTestSuite", this.stopWatch());
+    static {
+        Logger.getGlobal().setLevel(Level.SEVERE);
     }
 
-    public void testEdgeTestSuite() throws Exception {
-        this.stopWatch();
-        doTestSuite(new EdgeTestSuite(this));
-        printTestPerformance("EdgeTestSuite", this.stopWatch());
-    }
+    static final InfiniPeer local = InfiniPeer.local();
 
-    public void testGraphTestSuite() throws Exception {
-        this.stopWatch();
-        doTestSuite(new GraphTestSuite(this));
-        printTestPerformance("GraphTestSuite", this.stopWatch());
-    }
-
-//    public void testKeyIndexableGraphTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new KeyIndexableGraphTestSuite(this));
-//        printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());
-//    }
-//
-//    public void testIndexableGraphTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new IndexableGraphTestSuite(this));
-//        printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
-//    }
-//
-//    public void testIndexTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new IndexTestSuite(this));
-//        printTestPerformance("IndexTestSuite", this.stopWatch());
-//    }
-//
-//    public void testGraphMLReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GraphMLReaderTestSuite(this));
-//        printTestPerformance("GraphMLReaderTestSuite", this.stopWatch());
-//    }
-//
-//    public void testGMLReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GMLReaderTestSuite(this));
-//        printTestPerformance("GMLReaderTestSuite", this.stopWatch());
-//    }
-//
-//    public void testGraphSONReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GraphSONReaderTestSuite(this));
-//        printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());
-//    }
-
+    public static int n = 0;
     public Graph generateGraph() {
-        return new ConcurrentHashMapGraph();
+        return new SpanGraph("test" + (n++), local);
     }
 
-    @Override
-    public Graph generateGraph(String s) {
-        System.err.println("generateGraph(String ??):  " + s);
-        return null;
-    }
-
-    public void doTestSuite(final TestSuite testSuite) throws Exception {
-        String doTest = System.getProperty("testTinkerGraph");
-        if (doTest == null || doTest.equals("true")) {
-            for (Method method : testSuite.getClass().getDeclaredMethods()) {
-                if (method.getName().startsWith("test")) {
-                    System.out.println(method);
-                    System.out.println("Testing " + method.getName() + "...");
-                    method.invoke(testSuite);
-                }
-            }
-        }
-    }
 }

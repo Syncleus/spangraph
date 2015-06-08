@@ -135,16 +135,6 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             id = newID();
         }
         else {
-
-            //throw new RuntimeException("id must be non-null");
-//            boolean done = false;
-//            while (!done) {
-//                idString = this.getNextId();
-//                vertex = this.vertices.get(idString);
-//                if (null == vertex)
-//                    done = true;
-//            }
-
             if (this.vertices.containsKey(id)) {
                 throw ExceptionFactory.vertexWithIdAlreadyExists(id);
             }
@@ -526,6 +516,8 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         }
 
         public boolean equals(final Object object) {
+            if (this == object) return true;
+            if (object == null) return false;
             if (object.getClass()!=getClass()) return false;
             MElement o = (MElement)object;
             if (o.getId().equals(getId())) {
@@ -739,9 +731,13 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
                 throw ExceptionFactory.bothIsNotSupported();
         }
 
+
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("e[").append(global()).append(':').append(getId()).append("][").append(getVertex(Direction.OUT).getId()).append("-");
+            sb.append("e[");
+            if (isGlobal())
+                sb.append(global()).append(':');
+            sb.append(getId()).append("][").append(getVertex(Direction.OUT).getId()).append("-");
             String label = getLabel();
             if (label!=null)
                     sb.append(getLabel());

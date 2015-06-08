@@ -17,9 +17,13 @@ import org.infinispan.notifications.cachelistener.event.Event;
 import org.infinispan.notifications.cachemanagerlistener.annotation.Merged;
 import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
 import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
+import org.infinispan.remoting.transport.jgroups.JGroupsTransport;
+import org.jgroups.protocols.UDP;
 
 import java.io.PrintStream;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Peer-to-peer node manager : wraps CacheManager functionality
@@ -28,6 +32,11 @@ import java.util.function.Consumer;
  */
 @Listener(sync = true)
 public class InfiniPeer extends DefaultCacheManager  {
+
+    static {
+        Logger.getLogger(JGroupsTransport.class.getName()).setLevel(Level.WARNING);
+        Logger.getLogger(UDP.class.getName()).setLevel(Level.SEVERE);
+    }
 
     public final String userID;
 
@@ -169,6 +178,10 @@ public class InfiniPeer extends DefaultCacheManager  {
                 globalConfigBuilder.build(),
                 config
         );
+    }
+
+    public static InfiniPeer local() {
+        return local("");
     }
 
 //    public static void main(String args[]) throws Exception {
