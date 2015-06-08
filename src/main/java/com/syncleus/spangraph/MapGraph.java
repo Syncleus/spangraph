@@ -2,6 +2,8 @@ package com.syncleus.spangraph;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Longs;
 import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.util.*;
 import org.infinispan.commons.util.InfinispanCollections;
@@ -9,6 +11,7 @@ import org.infinispan.commons.util.WeakValueHashMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Blueprints Graph interface with adjacency implemented by some Map implementation.
@@ -84,6 +87,10 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         GRAPHSON
     }
 
+    protected MapGraph() {
+        super();
+        this.id = this.globalID = null;
+    }
 
     protected MapGraph(String id) {
         this(id, id);
@@ -110,15 +117,31 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
     protected abstract Map<X, Vertex> newVertexMap();
 
-    public MVertex<X> addVertex(final Object id) {
+
+    public String newID() {
+        String r;
+        do {
+            long low = UUID.randomUUID().getLeastSignificantBits();
+            long high = UUID.randomUUID().getMostSignificantBits();
+            r = new String(Base64.getEncoder().encode(
+                    Bytes.concat(
+                            Longs.toByteArray(low),
+                            Longs.toByteArray(high)
+                    )
+            ));
+        } while (this.vertices.containsKey(r));
+        return r;
+    }
+
+    public MVertex<X> addVertex(Object id) {
 
 
-        if (null != id) {
-            if (this.vertices.containsKey(id)) {
-                throw ExceptionFactory.vertexWithIdAlreadyExists(id);
-            }
-        } else {
-            throw new RuntimeException("id must be non-null");
+        if (null == id) {
+            id = newID();
+        }
+        else {
+
+            //throw new RuntimeException("id must be non-null");
 //            boolean done = false;
 //            while (!done) {
 //                idString = this.getNextId();
@@ -126,6 +149,10 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 //                if (null == vertex)
 //                    done = true;
 //            }
+
+            if (this.vertices.containsKey(id)) {
+                throw ExceptionFactory.vertexWithIdAlreadyExists(id);
+            }
         }
 
         MVertex<X> vertex = new MVertex<X>((X) id, this);
@@ -153,9 +180,6 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         if (!(obj instanceof MapGraph))
             return false;
         MapGraph m = (MapGraph)obj;
-
-
-
         if ((vertices.size() != m.vertices.size()) ||
             (edges.size() != m.edges.size()))
                 return false;
@@ -241,7 +265,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         return addEdge(edgeID, o, i, null);
     }
 
-    public Edge addEdge(final Object id, final Vertex outVertex, final Vertex inVertex, final String label) {
+    public Edge addEdge(Object id, final Vertex outVertex, final Vertex inVertex, final String label) {
         /*if (label == null)
             throw ExceptionFactory.edgeLabelCanNotBeNull();*/
 
@@ -252,14 +276,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
                 throw ExceptionFactory.edgeWithIdAlreadyExist(id);
             }
         } else {
-            throw new RuntimeException("ID must be non-null");
-//            boolean done = false;
-//            while (!done) {
-//                idString = this.getNextId();
-//                edge = this.edges.get(idString);
-//                if (null == edge)
-//                    done = true;
-//            }
+            id = newID();
         }
 
         MEdge<X> edge = new MEdge<X>((X)id,
@@ -405,8 +422,12 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
         public Map<String, Serializable> prop(final boolean createIfMissing) {
             if (properties == null) {
-                if  (createIfMissing)
-                    properties = new LinkedHashMap(2);
+                if  (createIfMissing) {
+
+                    //TODO make this an abstract method of MapGraph
+                    //properties = new LinkedHashMap(2);
+                    properties = new ConcurrentHashMap(2);
+                }
                 else
                     return InfinispanCollections.emptyMap();
             }
@@ -458,19 +479,24 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
 
 
-        public String global() {
-            if (graphID == null) return null;
-
-            if (globalID == null)
-                globalID = graphID.substring(0, graphID.indexOf(':'));
-            return globalID;
+        public boolean isGlobal() {
+            return graphID != null;
         }
+
+        public String global() {
+            if (!isGlobal()) return null;
+
+            return globalID = graphID.substring(0, graphID.indexOf(':'));
+        }
+
         abstract protected void beforeRemove(final String key, final Serializable oldValue);
 
         final static int PRIME = 31;
         final static int PRIME2 = 92821;
 
         public int hashCode() {
+            if (graphID == null) return id.hashCode();
+
             return hashL(this.id.hashCode(), global().hashCode()) ;
         }
 
@@ -490,7 +516,12 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         public boolean equals(final Object object) {
             if (object.getClass()!=getClass()) return false;
             MElement o = (MElement)object;
-            return o.getId().equals(getId()) && o.global().equals(global());
+            if (o.getId().equals(getId())) {
+                if (isGlobal())
+                    return o.global().equals(global());
+                return true;
+            }
+            return false;
         }
 
         /** also includes properties in the equality test */
@@ -510,14 +541,14 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
     public static class MVertex<X extends Serializable> extends MElement<X> implements Vertex, Serializable {
 
-        public final Map<X, Set<Edge>> outEdges = new LinkedHashMap();
-        public final Map<X, Set<Edge>> inEdges = new LinkedHashMap();
+        public final Map<String, Set<Edge>> outEdges = new LinkedHashMap();
+        public final Map<String, Set<Edge>> inEdges = new LinkedHashMap();
 
-        protected MVertex(final X id, final MapGraph graph) {
+        protected MVertex(final X id, final MapGraph<X> graph) {
             super(id, graph);
         }
 
-        public Iterable<Edge> getEdges(final Direction direction, final X... labels) {
+        public Iterable<Edge> getEdges(final Direction direction, final String... labels) {
             if (direction.equals(Direction.OUT)) {
                 return this.getOutEdges(labels);
             } else if (direction.equals(Direction.IN))
@@ -527,16 +558,13 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             }
         }
 
-        @Override
-        public Iterable<Edge> getEdges(Direction direction, String... strings) {
-            return null;
-        }
+
 
         public Iterable<Vertex> getVertices(final Direction direction, final String... labels) {
             return new VerticesFromEdgesIterable(this, direction, labels);
         }
 
-        private Iterable<Edge> getEdges(final Map<X, Set<Edge>> e, final X... labels) {
+        public Iterable<Edge> getEdges(final Map<String, Set<Edge>> e, final String... labels) {
             if (labels.length == 0) {
                 return Iterables.concat(e.values());
             } else if (labels.length == 1) {
@@ -547,7 +575,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
                     return edges;
                 }
             } else {
-                final Set<X> labelSet = Sets.newHashSet(labels);
+                final Set<String> labelSet = Sets.newHashSet(labels);
                 return Iterables.concat(Iterables.transform(e.entrySet(), x -> {
                     if (labelSet.contains(x.getKey()))
                         return x.getValue();
@@ -556,10 +584,11 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             }
         }
 
-        private Iterable<Edge> getInEdges(final X... labels) {
+
+        private Iterable<Edge> getInEdges(final String... labels) {
             return getEdges(inEdges, labels);
         }
-        private Iterable<Edge> getOutEdges(final X... labels) {
+        private Iterable<Edge> getOutEdges(final String... labels) {
             return getEdges(outEdges, labels);
         }
 
@@ -568,7 +597,11 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         }
 
         public String toString() {
-            return new StringBuilder().append("v[").append(global()).append(':').append(getId()).append("]").toString();
+            if (isGlobal())
+                return new StringBuilder().append("v[").append(global()).append(':').append(getId()).append("]").toString();
+            else
+                return new StringBuilder().append("v[").append(getId()).append("]").toString();
+
         }
 
         public Edge addEdge(final String label, final Vertex vertex) {
@@ -603,7 +636,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
 
         public boolean remove(Object edgeID, boolean incoming) {
-            Map<X, Set<Edge>> target = incoming ? inEdges : outEdges;
+            Map<String, Set<Edge>> target = incoming ? outEdges : inEdges;
             if (target.remove(edgeID)!=null) {
                 graph().update(this);
                 return true;
@@ -613,11 +646,12 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         }
 
         public boolean add(MEdge<X> edge, boolean incoming) {
-            Map<X, Set<Edge>> target = incoming ? inEdges : outEdges;
-            X e = edge.id;
-            Set<Edge> edges = target.get(e);
+            Map<String, Set<Edge>> target = incoming ? outEdges : inEdges;
+
+            String label = edge.getLabel();
+            Set<Edge> edges = target.get(label);
             if (null == edges) {
-                target.put(e, edges = newEdgeSet(1));
+                target.put(label, edges = newEdgeSet(1));
             }
             if (edges.add(edge)) {
                 graph().update(this);

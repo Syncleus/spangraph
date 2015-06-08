@@ -13,12 +13,12 @@ import static org.junit.Assert.assertTrue;
 public class SpanGraphTest {
 
 
-//    @Test
-//    public void testVertexEdgePropagationMemory() throws InterruptedException {
-//        testVertexPropagation(x ->
-//                        new SpanGraph("memory", InfiniPeer.cluster(x))
-//        );
-//    }
+    @Test
+    public void testVertexEdgePropagationMemory() throws InterruptedException {
+        testVertexPropagation(x ->
+                        new SpanGraph("local", InfiniPeer.local(x))
+        );
+    }
 
     @Test
     public void testVertexEdgePropagationNetwork() throws InterruptedException {
