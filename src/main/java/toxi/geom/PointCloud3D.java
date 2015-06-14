@@ -140,8 +140,8 @@ public class PointCloud3D implements Iterable<Vec3D> {
         return c;
     }
 
-    public AABB getBoundingBox() {
-        return AABB.fromMinMax(min, max);
+    public BB getBoundingBox() {
+        return BB.fromMinMax(min, max);
     }
 
     public Sphere getBoundingSphere() {

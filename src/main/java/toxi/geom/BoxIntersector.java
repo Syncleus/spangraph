@@ -13,7 +13,7 @@ public class BoxIntersector implements Intersector3D {
     /**
      * @return the box
      */
-    public AABB getBox() {
+    public BB getBox() {
         return box;
     }
 

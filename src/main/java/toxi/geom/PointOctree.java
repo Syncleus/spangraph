@@ -304,7 +304,7 @@ public class PointOctree extends AABB implements Shape3D {
      *            AABB
      * @return all points with the box volume
      */
-    public List<XYZ> getPointsWithinBox(AABB b) {
+    public List<XYZ> getPointsWithinBox(BB b) {
         ArrayList<XYZ> results = null;
         if (this.intersectsBox(b)) {
             if (points != null) {

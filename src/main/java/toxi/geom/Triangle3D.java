@@ -217,10 +217,10 @@ public class Triangle3D implements Shape3D {
                 * p.z());
     }
 
-    public AABB getBoundingBox() {
+    public BB getBoundingBox() {
         Vec3D min = Vec3D.min(Vec3D.min(a, b), c);
         Vec3D max = Vec3D.max(Vec3D.max(a, b), c);
-        return AABB.fromMinMax(min, max);
+        return BB.fromMinMax(min, max);
     }
 
     /**

@@ -31,61 +31,14 @@ import toxi.math.MathUtils;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.util.List;
 
 /**
  * Axis-aligned bounding box with basic intersection features for Ray, AABB and
  * Sphere classes.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AABB extends Vec3D implements Shape3D {
-
-    /**
-     * Creates a new instance from two vectors specifying opposite corners of
-     * the box
-     * 
-     * @param min
-     *            first corner point
-     * @param max
-     *            second corner point
-     * @return new AABB with centre at the half point between the 2 input
-     *         vectors
-     */
-    public static final AABB fromMinMax(Vec3D min, Vec3D max) {
-        Vec3D a = Vec3D.min(min, max);
-        Vec3D b = Vec3D.max(min, max);
-        return new AABB(a.interpolateTo(b, 0.5f), b.sub(a).scaleSelf(0.5f));
-    }
-
-    /**
-     * Factory method, computes & returns the bounding box for the given list of
-     * points.
-     * 
-     * @param points
-     * @return bounding rect
-     */
-    public static final AABB getBoundingBox(List<? extends XYZ> points) {
-        if (points == null || points.size() == 0) {
-            return null;
-        }
-        XYZ first = points.get(0);
-        Vec3D min = new Vec3D(first);
-        Vec3D max = new Vec3D(first);
-        int n = points.size();
-        if (n > 1) {
-            for (int i = 1; i < n; i++) {
-                XYZ p = points.get(i);
-                min.minSelf(p);
-                max.maxSelf(p);
-            }
-        }
-        return fromMinMax(min, max);
-    }
-
-    @XmlElement(required = true)
-    protected Vec3D extent;
+public class AABB extends BB implements Shape3D {
 
     @XmlTransient
     protected Vec3D min, max;
@@ -100,7 +53,7 @@ public class AABB extends Vec3D implements Shape3D {
      * 
      * @param box
      */
-    public AABB(AABB box) {
+    public AABB(BB box) {
         this(box, box.getExtent());
     }
 
@@ -138,27 +91,8 @@ public class AABB extends Vec3D implements Shape3D {
         setExtent(extent);
     }
 
-    public boolean containsPoint(XYZ p) {
-        return p.isInAABB(this);
-    }
-
-    public AABB copy() {
+    public BB copy() {
         return new AABB(this);
-    }
-
-    public Sphere getBoundingSphere() {
-        return new Sphere(this, extent.magnitude());
-    }
-
-    /**
-     * Returns the current box size as new Vec3D instance (updating this vector
-     * will NOT update the box size! Use {@link #setExtent(roVec3D)} for
-     * those purposes)
-     * 
-     * @return box size
-     */
-    public final Vec3D getExtent() {
-        return extent.copy();
     }
 
     public final Vec3D getMax() {
@@ -193,7 +127,7 @@ public class AABB extends Vec3D implements Shape3D {
      *            point to include
      * @return itself
      */
-    public AABB growToContainPoint(roVec3D p) {
+    public BB growToContainPoint(roVec3D p) {
         min.minSelf(p);
         max.maxSelf(p);
         set(min.interpolateTo(max, 0.5f));
@@ -202,29 +136,16 @@ public class AABB extends Vec3D implements Shape3D {
     }
 
     /**
-     * Checks if the box intersects the passed in one.
-     * 
-     * @param box
-     *            box to check
-     * @return true, if boxes overlap
-     */
-    public boolean intersectsBox(final AABB box) {
-        return MathUtils.abs(box.x - x) <= (extent.x + box.extent.x)
-                && MathUtils.abs(box.y - y) <= (extent.y + box.extent.y)
-                && MathUtils.abs(box.z - z) <= (extent.z + box.extent.z);
-    }
-
-    /**
      * Calculates intersection with the given ray between a certain distance
      * interval.
-     * 
+     *
      * Ray-box intersection is using IEEE numerical properties to ensure the
      * test is both robust and efficient, as described in:
-     * 
+     *
      * Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley: "An
      * Efficient and Robust Ray-Box Intersection Algorithm" Journal of graphics
      * tools, 10(1):49-54, 2005
-     * 
+     *
      * @param ray
      *            incident ray
      * @param minDist
@@ -271,48 +192,6 @@ public class AABB extends Vec3D implements Shape3D {
             return ray.getPointAtDistance(tmin);
         }
         return null;
-    }
-
-    public boolean intersectsSphere(Sphere s) {
-        return intersectsSphere(s, s.radius);
-    }
-
-    /**
-     * @param c
-     *            sphere centre
-     * @param r
-     *            sphere radius
-     * @return true, if AABB intersects with sphere
-     */
-    public boolean intersectsSphere(Vec3D c, float r) {
-        float s, d = 0;
-        // find the square of the distance
-        // from the sphere to the box
-        if (c.x < min.x) {
-            s = c.x - min.x;
-            d = s * s;
-        } else if (c.x > max.x) {
-            s = c.x - max.x;
-            d += s * s;
-        }
-
-        if (c.y < min.y) {
-            s = c.y - min.y;
-            d += s * s;
-        } else if (c.y > max.y) {
-            s = c.y - max.y;
-            d += s * s;
-        }
-
-        if (c.z < min.z) {
-            s = c.z - min.z;
-            d += s * s;
-        } else if (c.z > max.z) {
-            s = c.z - max.z;
-            d += s * s;
-        }
-
-        return d <= r * r;
     }
 
     public boolean intersectsTriangle(Triangle3D tri) {
@@ -450,7 +329,7 @@ public class AABB extends Vec3D implements Shape3D {
         return false;
     }
 
-    public AABB set(AABB box) {
+    public BB set(BB box) {
         extent.set(box.extent);
         return set((XYZ) box);
     }
@@ -474,7 +353,7 @@ public class AABB extends Vec3D implements Shape3D {
      * {@link #updateBounds()} immediately
      * 
      */
-    public AABB set(XYZ v) {
+    public BB set(XYZ v) {
         x = v.x();
         y = v.y();
         z = v.z();
@@ -489,7 +368,7 @@ public class AABB extends Vec3D implements Shape3D {
      *            new box size
      * @return itself, for method chaining
      */
-    public AABB setExtent(roVec3D extent) {
+    public BB setExtent(roVec3D extent) {
         this.extent = extent.copy();
         return updateBounds();
     }
@@ -558,12 +437,12 @@ public class AABB extends Vec3D implements Shape3D {
      */
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        sb.append("<aabb> pos: ").append(super.toString()).append(" ext: ")
+        sb.append("<aabb @").append(super.toString()).append("x")
                 .append(extent);
         return sb.toString();
     }
 
-    public AABB union(AABB box) {
+    public BB union(AABB box) {
         min.minSelf(box.getMin());
         max.maxSelf(box.getMax());
         set(min.interpolateTo(max, 0.5f));
@@ -577,7 +456,7 @@ public class AABB extends Vec3D implements Shape3D {
      * 
      * @return itself
      */
-    public final AABB updateBounds() {
+    public final BB updateBounds() {
         // this is check is necessary for the constructor
         if (extent != null) {
             this.min = this.sub(extent);
@@ -586,25 +465,4 @@ public class AABB extends Vec3D implements Shape3D {
         return this;
     }
 
-    public boolean contains(final XYZ v) {
-        final Vec3D min = this.min;
-        final Vec3D max = this.max;
-
-        final float x = v.x();
-        if (x < min.x || x > max.x) {
-            return false;
-        }
-
-        final float y = v.y();
-        if (y < min.y || y > max.y) {
-            return false;
-        }
-
-        final float z = v.z();
-        if (z < min.z || z > max.z) {
-            return false;
-        }
-
-        return true;
-    }
 }

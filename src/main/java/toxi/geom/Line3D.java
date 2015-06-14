@@ -241,8 +241,8 @@ public class Line3D {
      * @return aabb
      * @see AABB
      */
-    public AABB getBounds() {
-        return AABB.fromMinMax(a, b);
+    public BB getBounds() {
+        return BB.fromMinMax(a, b);
     }
 
     public Vec3D getDirection() {

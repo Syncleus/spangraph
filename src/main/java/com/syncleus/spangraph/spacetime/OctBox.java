@@ -4,36 +4,28 @@ import toxi.geom.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 
-public class AbstractOctree<L> extends AABB implements Shape3D {
+public class OctBox<V extends XYZ> extends AABB implements Shape3D {
 
     /**
      * alternative tree recursion limit, number of world units when cells are
      * not subdivided any further
      */
-    protected float minNodeSize = 0.1f;
+    protected Vec3D resolution;
 
     /**
      *
      */
-    public final AbstractOctree parent;
+    public final OctBox parent;
 
-    protected AbstractOctree[] children;
+    protected OctBox[] children;
 
-    protected byte numChildren;
+    protected Collection<V> points;
 
-    protected Collection<XYZ> points;
-
-    protected float size, halfSize;
-
-    protected Vec3D center;
-
-    private int depth = 0;
-
-    private boolean isAutoReducing = true;
 
     /**
      * Constructs a new AbstractOctree node within the AABB cube volume: {o.x, o.y,
@@ -46,18 +38,19 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @param halfSize
      *            half length of the tree volume along a single axis
      */
-    private AbstractOctree(AbstractOctree p, Vec3D o, float halfSize) {
-        super(o.add(halfSize, halfSize, halfSize), new Vec3D(halfSize,
-                halfSize, halfSize));
+    private OctBox(OctBox p, Vec3D o, Vec3D halfSize) {
+        super(o.add(halfSize), new Vec3D(halfSize));
         this.parent = p;
-        this.halfSize = halfSize;
-        this.size = halfSize * 2;
-        this.center = o;
-        this.numChildren = 0;
         if (parent != null) {
-            depth = parent.depth + 1;
-            minNodeSize = parent.minNodeSize;
+            resolution = parent.resolution;
         }
+
+
+    }
+
+    public int depth() {
+        if (parent == null) return 0;
+        return parent.depth() + 1;
     }
 
     /**
@@ -66,30 +59,34 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *
      * @param o
      *            tree origin
-     * @param size
      *            size of the tree volume along a single axis
      */
-    public AbstractOctree(Vec3D o, float size, float minResolution) {
-        this(null, o, size / 2);
-        this.minNodeSize = minResolution;
+    public OctBox(Vec3D o, Vec3D extents, Vec3D resolution) {
+        this(null, o, extents);
+        this.resolution = resolution;
     }
 
+
     /**
-     * Adds all points of the collection to the octree. IMPORTANT: Points need
-     * be of type Vec3D or have subclassed it.
+     * Adds all points of the collection to the octree.
      *
      * @param points
      *            point collection
-     * @return true, if all points have been added successfully.
+     * @return how many points were added
      */
-    public boolean put(Collection<XYZ> points) {
-        boolean addedAll = true;
-        for (XYZ p : points) {
-            addedAll &= put(p);
+    public int put(final Collection<V> points) {
+        int count = 0;
+        for (final V p : points) {
+            if (put(p)) count++;
         }
-        return addedAll;
+        return count;
     }
 
+    public boolean belowResolution() {
+        return extent.x <= resolution.x ||
+                extent.y <= resolution.y ||
+                extent.z <= resolution.z;
+    }
     /**
      * Adds a new point/particle to the tree structure. All points are stored
      * within leaf nodes only. The tree implementation is using lazy
@@ -98,15 +95,13 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @param p
      * @return true, if point has been added successfully
      */
-    public boolean put(final XYZ p) {
-        final float halfSize = this.halfSize;
-
+    public boolean put(final V p) {
 
 
         // check if point is inside cube
         if (containsPoint(p)) {
             // only add points to leaves for now
-            if (halfSize <= minNodeSize) {
+            if (belowResolution()) {
                 if (points == null) {
                     points = newPointsCollection();
                 }
@@ -114,17 +109,16 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                 return true;
             } else {
                 if (children == null) {
-                    children = new AbstractOctree[8];
+                    children = new OctBox[8];
                 }
-                int octant = getOctantID(p, center);
+                int octant = getOctantID(p, min);
                 if (children[octant] == null) {
-                    Vec3D off = center.add(new Vec3D(
-                            (octant & 1) != 0 ? halfSize : 0,
-                            (octant & 2) != 0 ? halfSize : 0,
-                            (octant & 4) != 0 ? halfSize : 0));
-                    children[octant] = new AbstractOctree(this, off,
-                            halfSize * 0.5f);
-                    numChildren++;
+                    Vec3D off = min.add(new Vec3D(
+                            (octant & 1) != 0 ? extent.x : 0,
+                            (octant & 2) != 0 ? extent.y : 0,
+                            (octant & 4) != 0 ? extent.z : 0));
+                    children[octant] = new OctBox(this, off,
+                            extent.scale(0.5f));
                 }
                 return children[octant].put(p);
             }
@@ -132,7 +126,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return false;
     }
 
-    protected Collection<XYZ> newPointsCollection() {
+    protected Collection<V> newPointsCollection() {
         return new ArrayList();
     }
 
@@ -141,10 +135,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * Applies the given {@link OctreeVisitor} implementation to this node and
      * all of its children.
      */
-    public void forEachRecursive(Consumer<AbstractOctree> visitor) {
+    public void forEachRecursive(Consumer<OctBox> visitor) {
         visitor.accept(this);
-        if (numChildren > 0) {
-            for (AbstractOctree c : children) {
+        if (children!=null) {
+            for (OctBox c : children) {
                 if (c != null) {
                     c.forEachRecursive(visitor);
                 }
@@ -156,8 +150,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return p.isInAABB(this);
     }
 
-    public AbstractOctree clear() {
-        numChildren = 0;
+    public OctBox clear() {
         children = null;
         points = null;
         return this;
@@ -166,32 +159,27 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
     /**
      * @return a copy of the child nodes array
      */
-    public AbstractOctree[] getChildrenCopy() {
+    public OctBox[] getChildrenCopy() {
         if (children != null) {
-            AbstractOctree[] clones = new AbstractOctree[8];
+            OctBox[] clones = new OctBox[8];
             System.arraycopy(children, 0, clones, 0, 8);
             return clones;
         }
         return null;
     }
 
-    /**
-     * @return the depth
-     */
-    public int getDepth() {
-        return depth;
-    }
+
 
     /**
      * Finds the leaf node which spatially relates to the given point
      *
      * @return leaf node or null if point is outside the tree dimensions
      */
-    public AbstractOctree getLeafForPoint(XYZ p) {
+    public OctBox getLeafForPoint(XYZ p) {
         // if not a leaf node...
         if (p.isInAABB(this)) {
-            if (numChildren > 0) {
-                int octant = getOctantID(p, center);
+            if (children!=null) {
+                int octant = getOctantID(p, this);
                 if (children[octant] != null) {
                     return children[octant].getLeafForPoint(p);
                 }
@@ -211,20 +199,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *
      * @return the minimum size of tree nodes
      */
-    public float getMinNodeSize() {
-        return minNodeSize;
+    public Vec3D getResolution() {
+        return resolution;
     }
 
-    public float getNodeSize() {
-        return size;
-    }
-
-    /**
-     * @return the number of child nodes (max. 8)
-     */
-    public int getNumChildren() {
-        return numChildren;
-    }
 
     /**
      * Computes the local child octant/cube index for the given point
@@ -234,10 +212,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @return octant index
      */
     protected final int getOctantID(final Vec3D plocal) {
-        float halfSize = this.halfSize;
+        final Vec3D h = this.extent;
 
-        return (plocal.x >= halfSize ? 1 : 0) + (plocal.y >= halfSize ? 2 : 0)
-                + (plocal.z >= halfSize ? 4 : 0);
+        return (plocal.x >= h.x ? 1 : 0) + (plocal.y >= h.y ? 2 : 0)
+                + (plocal.z >= h.z ? 4 : 0);
     }
 
     /** computes getOctantID for the point subtracted by another point,
@@ -245,25 +223,22 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
 
      */
     private int getOctantID(final XYZ p, final Vec3D s) {
-        return ((p.x() - s.x) >= halfSize ? 1 : 0) + ((p.y() - s.y) >= halfSize ? 2 : 0)
-                + ((p.z() - s.z) >= halfSize ? 4 : 0);
+        final Vec3D h = this.extent;
+        return ((p.x() - s.x) >= h.x ? 1 : 0) + ((p.y() - s.y) >= h.y? 2 : 0)
+                + ((p.z() - s.z) >= h.z ? 4 : 0);
     }
 
-    /**
-     * @return the offset
-     */
-    public roVec3D getCenter() {
-        return center;
-    }
+
 
     /**
      * @return the parent
      */
-    public AbstractOctree getParent() {
+    public OctBox getParent() {
         return parent;
     }
 
-    public Collection<XYZ> getPoints() {
+    public Collection<V> getPoints() {
+        if (points == null) return Collections.EMPTY_LIST;
         return points;
     }
 
@@ -278,17 +253,17 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return points.size();
     }
 
-    public List<XYZ> getPointsRecursively() {
+    public List<V> getPointsRecursively() {
         return getPointsRecursively(new ArrayList());
     }
 
     /**
      * @return the points
      */
-    public List<XYZ> getPointsRecursively(List<XYZ> results) {
+    public List<V> getPointsRecursively(List<V> results) {
         if (points != null) {
             results.addAll(points);
-        } else if (numChildren > 0) {
+        } else if (children!=null) {
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
                     children[i].getPointsRecursively(results);
@@ -305,7 +280,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *            AABB
      * @return all points with the box volume
      */
-    @Deprecated public List<XYZ> getPointsWithinBox(AABB b) {
+    @Deprecated public List<XYZ> getPointsWithinBox(BB b) {
         ArrayList<XYZ> results = null;
         if (this.intersectsBox(b)) {
             if (points != null) {
@@ -317,7 +292,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                         results.add(q);
                     }
                 }
-            } else if (numChildren > 0) {
+            } else if (children!=null) {
                 for (int i = 0; i < 8; i++) {
                     if (children[i] != null) {
                         List<XYZ> points = children[i].getPointsWithinBox(b);
@@ -334,7 +309,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return results;
     }
 
-    public void forEachInBox(AABB b, Consumer<XYZ> c) {
+    public void forEachInBox(BB b, Consumer<XYZ> c) {
         if (this.intersectsBox(b)) {
             if (points != null) {
                 for (XYZ q : points) {
@@ -342,7 +317,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                         c.accept(q);
                     }
                 }
-            } else if (numChildren > 0) {
+            } else if (children!=null) {
                 for (int i = 0; i < 8; i++) {
                     if (children[i] != null) {
                         children[i].forEachInBox(b, c);
@@ -360,9 +335,9 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                         c.accept(q);
                     }
                 }
-            } else if (numChildren > 0) {
+            } else if (children!=null) {
                 for (int i = 0; i < 8; i++) {
-                    AbstractOctree cc = children[i];
+                    OctBox cc = children[i];
                     if (cc != null) {
                         cc.forEachInSphere(s, c);
                     }
@@ -389,7 +364,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                         results.add(q);
                     }
                 }
-            } else if (numChildren > 0) {
+            } else if (children!=null) {
                 for (int i = 0; i < 8; i++) {
                     if (children[i] != null) {
                         List<XYZ> points = children[i].getPointsWithinSphere(s);
@@ -419,18 +394,13 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         forEachInSphere(new Sphere(sphereOrigin, clipRadius), c);
     }
 
-    /**
-     * @return the size
-     */
-    public float getScale() {
-        return size;
-    }
+
 
     private void reduceBranch() {
         if (points != null && points.size() == 0) {
             points = null;
         }
-        if (numChildren > 0) {
+        if (children!=null) {
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null && children[i].points == null) {
                     children[i] = null;
@@ -450,13 +420,13 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *            point to delete
      * @return true, if the point was found & removed
      */
-    public boolean remove(XYZ p) {
+    public boolean remove(V p) {
         boolean found = false;
-        AbstractOctree leaf = getLeafForPoint(p);
+        OctBox leaf = getLeafForPoint(p);
         if (leaf != null) {
             if (leaf.points.remove(p)) {
                 found = true;
-                if (isAutoReducing && leaf.points.size() == 0) {
+                if (leaf.points.size() == 0) {
                     leaf.reduceBranch();
                 }
             }
@@ -464,28 +434,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return found;
     }
 
-    public void removeAll(Collection<XYZ> points) {
-        for (XYZ p : points) {
+    public void removeAll(Collection<V> points) {
+        for (V p : points) {
             remove(p);
         }
-    }
-
-    /**
-     * @param minNodeSize
-     */
-    public void setMinNodeSize(float minNodeSize) {
-        this.minNodeSize = minNodeSize * 0.5f;
-    }
-
-    /**
-     * Enables/disables auto reduction of branches after points have been
-     * deleted from the tree. Turned off by default.
-     *
-     * @param state
-     *            true, to enable feature
-     */
-    public void setTreeAutoReduction(boolean state) {
-        isAutoReducing = state;
     }
 
     /*
@@ -494,6 +446,6 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @see toxi.geom.AABB#toString()
      */
     public String toString() {
-        return "<octree> offset: " + super.toString() + " size: " + size;
+        return "<OctBox @" + super.toString() + '>';
     }
 }

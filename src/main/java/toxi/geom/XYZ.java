@@ -81,7 +81,7 @@ public interface XYZ {
      *
      * @see toxi.geom.ReadonlyVec3D#isInAABB(toxi.geom.AABB)
      */
-    default public boolean isInAABB(final AABB box) {
+    default public boolean isInAABB(final BB box) {
         return box.contains(this);
     }
 
