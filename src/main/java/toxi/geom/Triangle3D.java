@@ -135,7 +135,7 @@ public class Triangle3D implements Shape3D {
         // return projection of P onto AB
         if (vc <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) {
             // return a + snom / (snom + sdenom) * ab;
-            return a.add(ab.scaleSelf(snom / (snom + sdenom)));
+            return a.plus(ab.scaleSelf(snom / (snom + sdenom)));
         }
 
         // P is outside (or on) BC if the triple scalar product [N PB PC] <= 0
@@ -144,7 +144,7 @@ public class Triangle3D implements Shape3D {
         // return projection of P onto BC
         if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f) {
             // return b + unom / (unom + udenom) * bc;
-            return b.add(bc.scaleSelf(unom / (unom + udenom)));
+            return b.plus(bc.scaleSelf(unom / (unom + udenom)));
         }
 
         // P is outside (or on) CA if the triple scalar product [N PC PA] <= 0
@@ -153,7 +153,7 @@ public class Triangle3D implements Shape3D {
         // return projection of P onto CA
         if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) {
             // return a + tnom / (tnom + tdenom) * ac;
-            return a.add(ac.scaleSelf(tnom / (tnom + tdenom)));
+            return a.plus(ac.scaleSelf(tnom / (tnom + tdenom)));
         }
 
         // P must project inside face region. Compute Q using barycentric
@@ -166,7 +166,7 @@ public class Triangle3D implements Shape3D {
     }
 
     public Vec3D computeCentroid() {
-        centroid = a.add(b).addSelf(c).scaleSelf(1f / 3);
+        centroid = a.plus(b).addSelf(c).scaleSelf(1f / 3);
         return centroid;
     }
 

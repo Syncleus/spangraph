@@ -62,7 +62,7 @@ public class PointCloud3D implements Iterable<Vec3D> {
         points.add(p);
         min.minSelf(p);
         max.maxSelf(p);
-        centroid.set(min.add(max).scaleSelf(0.5f));
+        centroid.set(min.plus(max).scaleSelf(0.5f));
         radiusSquared = MathUtils.max(radiusSquared,
                 p.distanceToSquared(centroid));
         return this;
@@ -194,7 +194,7 @@ public class PointCloud3D implements Iterable<Vec3D> {
             min.minSelf(p);
             max.maxSelf(p);
         }
-        centroid.set(min.add(max).scaleSelf(0.5f));
+        centroid.set(min.plus(max).scaleSelf(0.5f));
         radiusSquared = 0;
         for (roVec3D p : points) {
             radiusSquared = MathUtils.max(radiusSquared,

@@ -257,15 +257,15 @@ public class Vec3D implements Comparable<roVec3D>, roVec3D, Serializable {
         return this;
     }
 
-    public final Vec3D add(float a, float b, float c) {
+    public final Vec3D plus(float a, float b, float c) {
         return new Vec3D(x + a, y + b, z + c);
     }
 
-    public Vec3D add(roVec3D v) {
+    public Vec3D plus(roVec3D v) {
         return new Vec3D(x + v.x(), y + v.y(), z + v.z());
     }
 
-    public final Vec3D add(Vec3D v) {
+    public final Vec3D plus(Vec3D v) {
         return new Vec3D(x + v.x, y + v.y, z + v.z);
     }
 
@@ -329,7 +329,7 @@ public class Vec3D implements Comparable<roVec3D>, roVec3D, Serializable {
      * 
      * @return itself
      */
-    public roVec3D clear() {
+    public roVec3D zero() {
         x = y = z = 0;
         return this;
     }
@@ -1444,7 +1444,7 @@ public class Vec3D implements Comparable<roVec3D>, roVec3D, Serializable {
         return new Vec4D(x, y, z, w);
     }
 
-    public float[] toArray() {
+    public float[] toArray3() {
         return new float[] {
                 x, y, z
         };

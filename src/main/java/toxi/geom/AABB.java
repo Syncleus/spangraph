@@ -459,7 +459,7 @@ public class AABB extends BB implements Shape3D {
         // this is check is necessary for the constructor
         if (extent != null) {
             this.min = this.sub(extent);
-            this.max = this.add(extent);
+            this.max = this.plus(extent);
         }
         return this;
     }

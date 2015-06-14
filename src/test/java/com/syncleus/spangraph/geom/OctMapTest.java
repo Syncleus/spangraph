@@ -62,7 +62,7 @@ public class OctMapTest {
     @Test
     public void test1() {
         InfiniPeer p = InfiniPeer.local("i", "/tmp/t", 1024);
-        OctMap<String,Event> o = new OctMap<>(p, "octmap",
+        OctMap<Event,String> o = new OctMap<>(p, "octmap",
                 new Vec3D(-180f,-90f,0f ), /* AD */
                 new Vec3D(180f,90f,2100f ), /* 0AD .. 2100AD */
                 new Vec3D(1f,0.75f,2f)
@@ -77,7 +77,7 @@ public class OctMapTest {
                 new Event("Earth Destroyed", 0, 10f, 2015f)};
 
         for (Event e  : ee) {
-            o.put(e.name, e);
+            o.put(e, "");
         }
 
         System.out.println(o);

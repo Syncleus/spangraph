@@ -83,7 +83,7 @@ public class Ray3D extends Vec3D {
      * @return vector
      */
     public Vec3D getPointAtDistance(float dist) {
-        return add(dir.scale(dist));
+        return plus(dir.scale(dist));
     }
 
     /**

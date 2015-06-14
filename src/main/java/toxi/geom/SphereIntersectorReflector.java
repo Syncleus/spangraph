@@ -57,7 +57,7 @@ public class SphereIntersectorReflector implements Intersector3D, Reflector3D {
      */
     public roVec3D getReflectedRayPointAtDistance(float dist) {
         if (reflectedDir != null) {
-            return isectData.pos.add(reflectedDir.scale(dist));
+            return isectData.pos.plus(reflectedDir.scale(dist));
         } else {
             return null;
         }
@@ -109,7 +109,7 @@ public class SphereIntersectorReflector implements Intersector3D, Reflector3D {
         isectData.isIntersection = isectData.dist >= 0;
         if (isectData.isIntersection) {
             // get the intersection point
-            isectData.pos = ray.add(ray.getDirection().scale(isectData.dist));
+            isectData.pos = ray.plus(ray.getDirection().scale(isectData.dist));
             // calculate the direction from our point to the intersection pos
             isectData.dir = isectData.pos.sub(ray);
             isectData.normal = sphere.tangentPlaneNormalAt(isectData.pos);

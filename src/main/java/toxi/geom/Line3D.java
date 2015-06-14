@@ -189,8 +189,8 @@ public class Line3D {
         float mua = (float) (numer / denom);
         float mub = (float) ((d1343 + d4321 * mua) / d4343);
 
-        Vec3D pa = a.add(p21.scaleSelf(mua));
-        Vec3D pb = l.a.add(p43.scaleSelf(mub));
+        Vec3D pa = a.plus(p21.scaleSelf(mua));
+        Vec3D pb = l.a.plus(p43.scaleSelf(mub));
         return new LineIntersection(Type.INTERSECTING, new Line3D(pa, pb), mua,
                 mub);
     }
@@ -212,7 +212,7 @@ public class Line3D {
             return b.copy();
         }
         // Return the point between 'a' and 'b'
-        return a.add(v.scaleSelf(t));
+        return a.plus(v.scaleSelf(t));
     }
 
     public Line3D copy() {
@@ -258,7 +258,7 @@ public class Line3D {
     }
 
     public Vec3D getMidPoint() {
-        return a.add(b).scaleSelf(0.5f);
+        return a.plus(b).scaleSelf(0.5f);
     }
 
     public XYZ getNormal() {

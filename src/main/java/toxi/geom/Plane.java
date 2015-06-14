@@ -103,7 +103,7 @@ public class Plane extends Vec3D implements Shape3D {
     public float getDistanceToPoint(Vec3D p) {
         float sn = -normal.dot(p.sub(this));
         float sd = normal.magSquared();
-        Vec3D isec = p.add(normal.scale(sn / sd));
+        Vec3D isec = p.plus(normal.scale(sn / sd));
         return isec.distanceTo(p);
     }
 

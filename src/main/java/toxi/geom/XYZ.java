@@ -2,10 +2,12 @@ package toxi.geom;
 
 import toxi.math.InterpolateStrategy;
 
+import java.io.Serializable;
+
 /**
  * Created by me on 6/13/15.
  */
-public interface XYZ {
+public interface XYZ extends Serializable {
 
     public float x();
 

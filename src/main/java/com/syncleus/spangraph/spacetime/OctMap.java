@@ -11,15 +11,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public class OctMap<K, V extends XYZ> implements Map<K,V> {
+/** TODO extract infinispan to subclass allowing any Map impl for index */
+public class OctMap<K extends XYZ, V> implements Map<K,V> {
 
     private final Logger logger;
 
     /** holder for _oct for infinispan persistence */
-    protected final Cache<Long, OctBox<V>> _oct;
+    protected final Cache<Long, OctBox<K>> _oct;
 
     protected final Cache<K, V> map;
-    protected final OctBox<V> box;
+    protected final OctBox<K> box;
 
     boolean startupCheck = true;
 
@@ -84,14 +85,14 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
         if (removed!=null) {
             octRemove(key, removed);
         }
-        if (!box.put(value)) {
+        if (box.ADD(key)==null) {
             throw new RuntimeException("Octree rejected value=" + value + ", key=" + key );
         }
         return removed;
     }
 
-    private void octRemove(Object key, V v) {
-        if (!box.remove(v)) {
+    private void octRemove(K key, V v) {
+        if (!box.remove(key)) {
             throw new RuntimeException("Octree inconsistency detected on removal key=" + key + ", value=" + v);
         }
     }
@@ -100,7 +101,7 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     public V remove(Object key) {
         V v = map.remove(key);
         if (v!=null) {
-            octRemove(key, v);
+            octRemove((K)key, v);
         }
         return v;
     }
@@ -108,13 +109,13 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         map.putAll(m);
-        box.put(m.values());
+        box.putAll(m.keySet());
     }
 
     @Override
     public void clear() {
         map.clear();
-        box.clear();
+        box.zero();
     }
 
     @Override
@@ -134,8 +135,8 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
 
     public void reindex() {
         logger.info("re-indexing " + map.size() + " items");
-        box.clear();
-        box.put(map.values());
+        box.zero();
+        box.putAll(map.keySet());
 
         validate();
     }

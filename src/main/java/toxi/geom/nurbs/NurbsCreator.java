@@ -196,7 +196,7 @@ public final class NurbsCreator {
         cp[3] = cp[0].getInvertedXYZ();
         cp[6] = cp[0].copy();
 
-        cp[1] = new Vec4D(o.yAxis.add(o.xAxis).scaleSelf(r), 0.5f);
+        cp[1] = new Vec4D(o.yAxis.plus(o.xAxis).scaleSelf(r), 0.5f);
         cp[4] = cp[1].getInvertedXYZ();
 
         cp[2] = new Vec4D(o.xAxis.getInverted().addSelf(o.yAxis).scaleSelf(r),
@@ -231,7 +231,7 @@ public final class NurbsCreator {
         cp[4] = cp[0].getInvertedXYZ();
         cp[8] = cp[0].copy();
 
-        cp[1] = new Vec4D(o.xAxis.add(o.yAxis).scaleSelf(r), w);
+        cp[1] = new Vec4D(o.xAxis.plus(o.yAxis).scaleSelf(r), w);
         cp[5] = cp[1].getInvertedXYZ();
 
         cp[2] = new Vec4D(o.yAxis.scale(r), 1);
@@ -491,7 +491,7 @@ public final class NurbsCreator {
         cp[3] = cp[0].getInvertedXYZ();
         cp[0].addXYZSelf(o.origin);
         cp[3].addXYZSelf(o.origin);
-        cp[1] = new Vec4D(o.xAxis.add(o.yAxis).scaleSelf(r).addSelf(o.origin),
+        cp[1] = new Vec4D(o.xAxis.plus(o.yAxis).scaleSelf(r).addSelf(o.origin),
                 0.5f);
         cp[2] = new Vec4D(o.xAxis.getInverted().addSelf(o.yAxis).scaleSelf(r)
                 .addSelf(o.origin), 0.5f);
@@ -742,7 +742,7 @@ public final class NurbsCreator {
             Vec3D top, Vec3D out) {
         Vec3D dir = top.sub(p);
         float hyp = dir.magnitude();
-        out.set(p.add(t.scale(t.dot(dir.normalize()) * hyp)));
+        out.set(p.plus(t.scale(t.dot(dir.normalize()) * hyp)));
     }
 
     private static float[][] surfaceMeshParameters(Vec3D points[][], int n,

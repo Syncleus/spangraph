@@ -78,7 +78,7 @@ public class PointOctree extends AABB implements Shape3D {
      *            half length of the tree volume along a single axis
      */
     private PointOctree(PointOctree p, Vec3D o, float halfSize) {
-        super(o.add(halfSize, halfSize, halfSize), new Vec3D(halfSize,
+        super(o.plus(halfSize, halfSize, halfSize), new Vec3D(halfSize,
                 halfSize, halfSize));
 
         this.parent = p;
@@ -146,7 +146,7 @@ public class PointOctree extends AABB implements Shape3D {
                 }
                 int octant = getOctantID(plocal);
                 if (children[octant] == null) {
-                    Vec3D off = offset.add(new Vec3D(
+                    Vec3D off = offset.plus(new Vec3D(
                             (octant & 1) != 0 ? halfSize : 0,
                             (octant & 2) != 0 ? halfSize : 0,
                             (octant & 4) != 0 ? halfSize : 0));

@@ -49,9 +49,9 @@ public interface roVec3D extends XYZ {
      * 
      * @return result as new vector
      */
-    public Vec3D add(float a, float b, float c);
+    public Vec3D plus(float a, float b, float c);
 
-    public Vec3D add(roVec3D v);
+    public Vec3D plus(roVec3D v);
 
     /**
      * Add vector v and returns result as new vector.
@@ -61,7 +61,7 @@ public interface roVec3D extends XYZ {
      * 
      * @return result as new vector
      */
-    public Vec3D add(Vec3D v);
+    public Vec3D plus(Vec3D v);
 
     /**
      * Computes the angle between this vector and vector V. This function
@@ -474,7 +474,7 @@ public interface roVec3D extends XYZ {
      */
     public Vec4D to4D(float w);
 
-    public float[] toArray();
+    public float[] toArray3();
 
     public float[] toArray4(float w);
 

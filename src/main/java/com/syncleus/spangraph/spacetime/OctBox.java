@@ -36,7 +36,7 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      *            half length of the tree volume along a single axis
      */
     private OctBox(OctBox p, Vec3D o, Vec3D halfSize) {
-        super(o.add(halfSize), new Vec3D(halfSize));
+        super(o.plus(halfSize), new Vec3D(halfSize));
         this.parent = p;
         if (parent != null) {
             resolution = parent.resolution;
@@ -71,14 +71,15 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      *            point collection
      * @return how many points were added
      */
-    public int put(final Collection<? extends V> points) {
+    public int putAll(final Collection<? extends V> points) {
         int count = 0;
         for (final V p : points) {
-            if (put(p)) count++;
+            if (ADD(p)!=null) count++;
         }
         return count;
     }
 
+    //TODO memoize this result in a special leaf subclass
     public boolean belowResolution() {
         return extent.x() <= resolution.x ||
                 extent.y() <= resolution.y ||
@@ -90,9 +91,9 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      * instantiation for all intermediate tree levels.
      *
      * @param p
-     * @return true, if point has been added successfully
+     * @return the box it was inserted to, or null if wasn't
      */
-    public boolean put(final V p) {
+    public OctBox<V> ADD(final V p) {
 
 
         // check if point is inside cube
@@ -103,7 +104,7 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
                     points = newPointsCollection();
                 }
                 points.add(p);
-                return true;
+                return this;
             } else {
                 if (children == null) {
                     children = new OctBox[8];
@@ -117,10 +118,10 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
                     children[octant] = new OctBox(this, off,
                             extent.scale(0.5f));
                 }
-                return children[octant].put(p);
+                return children[octant].ADD(p);
             }
         }
-        return false;
+        return null;
     }
 
     protected Collection<V> newPointsCollection() {
@@ -143,14 +144,16 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
         }
     }
 
+
+
     public boolean containsPoint(XYZ p) {
         return p.isInAABB(this);
     }
 
-    public OctBox clear() {
+    public void clear() {
+        zero();
         children = null;
         points = null;
-        return this;
     }
 
     /**
@@ -323,6 +326,12 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
             }
         }
     }
+
+    public void forEachNeighbor(V item, XYZ boxRadius, Consumer<OctBox> visitor) {
+        //SOON
+        throw new UnsupportedOperationException();
+    }
+
     public void forEachInSphere(Sphere s, Consumer<XYZ> c) {
 
         if (this.intersectsSphere(s)) {
@@ -342,6 +351,8 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
             }
         }
     }
+
+
     /**
      * Selects all stored points within the given sphere volume
      *
@@ -413,12 +424,11 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      * Removes a point from the tree and (optionally) tries to release memory by
      * reducing now empty sub-branches.
      *
-     * @param p
-     *            point to delete
      * @return true, if the point was found & removed
      */
-    public boolean remove(V p) {
+    public boolean remove(Object _p) {
         boolean found = false;
+        V p = (V)_p;
         OctBox leaf = getLeafForPoint(p);
         if (leaf != null) {
             if (leaf.points.remove(p)) {
@@ -431,10 +441,12 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
         return found;
     }
 
-    public void removeAll(Collection<V> points) {
-        for (V p : points) {
-            remove(p);
+    public boolean removeAll(Collection<?> points) {
+        boolean allRemoved = true;
+        for (Object p : points) {
+            allRemoved &= remove(p);
         }
+        return allRemoved;
     }
 
     /*

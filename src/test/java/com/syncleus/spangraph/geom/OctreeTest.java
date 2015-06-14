@@ -24,20 +24,20 @@ public class OctreeTest {
 
         assertEquals(0, o.countPointsRecursively());
 
-        boolean b = o.put(new Vec3D(3,3,3));
-        assertTrue(b);
+        OctBox block = o.ADD(new Vec3D(3, 3, 3));
+        assertTrue(block!=null);
         assertEquals(1, o.countPointsRecursively());
 
-        o.put(new Vec3D(0, 1, 0));
-        o.put(new Vec3D(0, 1, 0));
-        o.put(new Vec3D(0, 0, 1));
-        o.put(new Vec3D(0, 0, 1.25f));
-        o.put(new Vec3D(0, 0, 1.5f));
-        o.put(new Vec3D(0, 0, -1));
-        o.put(new Vec3D(0, 0, -1.25f));
-        o.put(new Vec3D(0, 0, -1.50f));
-        o.put(new Vec3D(0, 0, -1.55f));
-        o.put(new Vec3D(0, 0, -1.575f));
+        o.ADD(new Vec3D(0, 1, 0));
+        o.ADD(new Vec3D(0, 1, 0));
+        o.ADD(new Vec3D(0, 0, 1));
+        o.ADD(new Vec3D(0, 0, 1.25f));
+        o.ADD(new Vec3D(0, 0, 1.5f));
+        o.ADD(new Vec3D(0, 0, -1));
+        o.ADD(new Vec3D(0, 0, -1.25f));
+        o.ADD(new Vec3D(0, 0, -1.50f));
+        o.ADD(new Vec3D(0, 0, -1.55f));
+        o.ADD(new Vec3D(0, 0, -1.575f));
 
         o.forEachInBox(x -> {
 

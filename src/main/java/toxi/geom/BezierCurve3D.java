@@ -67,7 +67,7 @@ public class BezierCurve3D {
             Vec3D de = e.sub(d);
             Vec3D cd2 = cd.interpolateTo(de, 0.5f);
             c.set(d.sub(cd2));
-            e.set(d.add(de.interpolateToSelf(cd, 0.5f)));
+            e.set(d.plus(de.interpolateToSelf(cd, 0.5f)));
         } else {
             throw new IllegalArgumentException("invalid point index");
         }
