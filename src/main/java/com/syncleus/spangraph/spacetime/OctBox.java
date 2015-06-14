@@ -71,7 +71,7 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      *            point collection
      * @return how many points were added
      */
-    public int put(final Collection<V> points) {
+    public int put(final Collection<? extends V> points) {
         int count = 0;
         for (final V p : points) {
             if (put(p)) count++;

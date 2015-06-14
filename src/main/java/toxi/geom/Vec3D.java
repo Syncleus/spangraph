@@ -32,13 +32,14 @@ import toxi.math.MathUtils;
 import toxi.math.ScaleMap;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import java.io.Serializable;
 import java.util.Random;
 
 /**
  * Comprehensive 3D vector class with additional basic intersection and
  * collision detection features.
  */
-public class Vec3D implements Comparable<roVec3D>, roVec3D {
+public class Vec3D implements Comparable<roVec3D>, roVec3D, Serializable {
 
 
 
