@@ -39,7 +39,7 @@ public class OctreeTest {
         o.put(new Vec3D(0, 0, -1.55f));
         o.put(new Vec3D(0, 0, -1.575f));
 
-        o.forEachRecursive(x -> {
+        o.forEachInBox(x -> {
 
             List p = (((OctBox) x).getPointsRecursively());
             //if (!p.isEmpty())

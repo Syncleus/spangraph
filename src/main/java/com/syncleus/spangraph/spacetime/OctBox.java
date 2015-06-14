@@ -132,12 +132,12 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      * Applies the given {@link OctreeVisitor} implementation to this node and
      * all of its children.
      */
-    public void forEachRecursive(Consumer<OctBox> visitor) {
+    public void forEachInBox(Consumer<OctBox> visitor) {
         visitor.accept(this);
         if (children!=null) {
             for (OctBox c : children) {
                 if (c != null) {
-                    c.forEachRecursive(visitor);
+                    c.forEachInBox(visitor);
                 }
             }
         }
@@ -241,7 +241,7 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
 
     public int countPointsRecursively() {
         final int[] x = {0};
-        forEachRecursive(n -> x[0] += n.countPoints());
+        forEachInBox(n -> x[0] += n.countPoints());
         return x[0];
     }
 
@@ -443,6 +443,9 @@ public class OctBox<V extends XYZ> extends BB implements Shape3D {
      * @see toxi.geom.AABB#toString()
      */
     public String toString() {
-        return "<OctBox @" + super.toString() + '>';
+        String x = "<OctBox @" + super.toString() + '>';
+        if (points!=null)
+            x += "=" + points.toString();
+        return x;
     }
 }

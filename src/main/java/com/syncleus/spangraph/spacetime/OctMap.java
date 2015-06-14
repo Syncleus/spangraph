@@ -9,15 +9,47 @@ import toxi.geom.XYZ;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class OctMap<K, V extends XYZ> implements Map<K,V> {
 
-    private final Cache<K, V> map;
-    private final OctBox<V> oct;
+    private final Logger logger;
+
+    /** holder for _oct for infinispan persistence */
+    protected final Cache<Long, OctBox<V>> _oct;
+
+    protected final Cache<K, V> map;
+    protected final OctBox<V> box;
+
+    boolean startupCheck = true;
 
     public OctMap(InfiniPeer p, String id, Vec3D center, Vec3D radius, Vec3D resolution) {
+
+        this.logger = Logger.getLogger(OctMap.class.getSimpleName() + ":" + id);
+
         this.map = p.the(id);
-        this.oct = new OctBox(center, radius, resolution);
+        this._oct = p.the(id + ".oct");
+
+        if (_oct.isEmpty()) {
+            OctBox newBox = this.box = new OctBox(center, radius, resolution);
+            _oct.put(0L, newBox);
+            logger.info("new octree created: " + box);
+        }
+        else {
+            this.box = _oct.get(0L);
+            if (this.box == null) {
+                throw new RuntimeException("Unable to load persisted OctBox:" + this._oct);
+            }
+            logger.info("existing octbox loaded: " + box);
+
+
+            if (startupCheck) {
+                if (!validate()) {
+                    reindex();
+                    flush();
+                }
+            }
+        }
     }
 
 
@@ -50,15 +82,17 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     public V put(K key, V value) {
         V removed = map.put(key, value);
         if (removed!=null) {
-            octRemove(removed);
+            octRemove(key, removed);
         }
-        oct.put(value);
+        if (!box.put(value)) {
+            throw new RuntimeException("Octree rejected value=" + value + ", key=" + key );
+        }
         return removed;
     }
 
-    private void octRemove(V v) {
-        if (!oct.remove(v)) {
-            throw new RuntimeException("Octree inconsistency detected on removal value=" + v);
+    private void octRemove(Object key, V v) {
+        if (!box.remove(v)) {
+            throw new RuntimeException("Octree inconsistency detected on removal key=" + key + ", value=" + v);
         }
     }
 
@@ -66,7 +100,7 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     public V remove(Object key) {
         V v = map.remove(key);
         if (v!=null) {
-            octRemove(v);
+            octRemove(key, v);
         }
         return v;
     }
@@ -74,13 +108,13 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         map.putAll(m);
-        oct.put(m.values());
+        box.put(m.values());
     }
 
     @Override
     public void clear() {
         map.clear();
-        oct.clear();
+        box.clear();
     }
 
     @Override
@@ -96,5 +130,31 @@ public class OctMap<K, V extends XYZ> implements Map<K,V> {
     @Override
     public Set<Entry<K, V>> entrySet() {
         return map.entrySet();
+    }
+
+    public void reindex() {
+        logger.info("re-indexing " + map.size() + " items");
+        box.clear();
+        box.put(map.values());
+
+        validate();
+    }
+
+    /** manually flush the octree to persistence */
+    public boolean flush() {
+        _oct.put(0L, box);
+        return validate();
+    }
+
+    public boolean validate() {
+        int e = box.countPointsRecursively();
+        int msize = map.size();
+        boolean consistent = (e == msize);
+        logger.info("octbox contains " + e + " entries. consistent with map=" + msize + " is " + consistent);
+        return consistent;
+    }
+
+    public OctBox box() {
+        return box;
     }
 }

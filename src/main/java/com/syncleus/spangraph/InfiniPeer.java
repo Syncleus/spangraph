@@ -157,7 +157,10 @@ public class InfiniPeer extends DefaultCacheManager  {
                     .addSingleFileStore()
                     .location(diskPath)
                     .maxEntries(maxEntries)
+                    .fetchPersistentState(true)
+                            .ignoreModifications(false)
 
+                    //.purgeOnStartup(true)
 
                 .unsafe()
                 .clustering()
