@@ -133,7 +133,7 @@ public class AABB extends Vec3D implements Shape3D {
      *            box dimensions (the box will be double the size in each
      *            direction)
      */
-    public AABB(roVec3D pos, roVec3D extent) {
+    public AABB(XYZ pos, roVec3D extent) {
         super(pos);
         setExtent(extent);
     }
@@ -208,11 +208,10 @@ public class AABB extends Vec3D implements Shape3D {
      *            box to check
      * @return true, if boxes overlap
      */
-    public boolean intersectsBox(AABB box) {
-        Vec3D t = box.sub(this);
-        return MathUtils.abs(t.x) <= (extent.x + box.extent.x)
-                && MathUtils.abs(t.y) <= (extent.y + box.extent.y)
-                && MathUtils.abs(t.z) <= (extent.z + box.extent.z);
+    public boolean intersectsBox(final AABB box) {
+        return MathUtils.abs(box.x - x) <= (extent.x + box.extent.x)
+                && MathUtils.abs(box.y - y) <= (extent.y + box.extent.y)
+                && MathUtils.abs(box.z - z) <= (extent.z + box.extent.z);
     }
 
     /**

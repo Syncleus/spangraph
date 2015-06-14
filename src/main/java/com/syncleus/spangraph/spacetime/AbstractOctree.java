@@ -14,7 +14,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * alternative tree recursion limit, number of world units when cells are
      * not subdivided any further
      */
-    protected float minNodeSize = 4;
+    protected float minNodeSize = 0.1f;
 
     /**
      *
@@ -69,8 +69,9 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @param size
      *            size of the tree volume along a single axis
      */
-    public AbstractOctree(Vec3D o, float size) {
+    public AbstractOctree(Vec3D o, float size, float minResolution) {
         this(null, o, size / 2);
+        this.minNodeSize = minResolution;
     }
 
     /**
@@ -81,10 +82,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *            point collection
      * @return true, if all points have been added successfully.
      */
-    public boolean addAll(Collection<XYZ> points) {
+    public boolean put(Collection<XYZ> points) {
         boolean addedAll = true;
         for (XYZ p : points) {
-            addedAll &= addPoint(p);
+            addedAll &= put(p);
         }
         return addedAll;
     }
@@ -97,10 +98,10 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * @param p
      * @return true, if point has been added successfully
      */
-    public boolean addPoint(final XYZ p) {
+    public boolean put(final XYZ p) {
         final float halfSize = this.halfSize;
 
-        AbstractOctree[] children = this.children;
+
 
         // check if point is inside cube
         if (containsPoint(p)) {
@@ -125,7 +126,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
                             halfSize * 0.5f);
                     numChildren++;
                 }
-                return children[octant].addPoint(p);
+                return children[octant].put(p);
             }
         }
         return false;
@@ -140,12 +141,12 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      * Applies the given {@link OctreeVisitor} implementation to this node and
      * all of its children.
      */
-    public void forEach(Consumer<AbstractOctree> visitor) {
+    public void forEachRecursive(Consumer<AbstractOctree> visitor) {
         visitor.accept(this);
         if (numChildren > 0) {
             for (AbstractOctree c : children) {
                 if (c != null) {
-                    c.forEach(visitor);
+                    c.forEachRecursive(visitor);
                 }
             }
         }
@@ -262,22 +263,35 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return parent;
     }
 
-    public List<XYZ> getPoints() {
-        return getPoints(new ArrayList());
+    public Collection<XYZ> getPoints() {
+        return points;
+    }
+
+    public int countPointsRecursively() {
+        final int[] x = {0};
+        forEachRecursive(n -> x[0] += n.countPoints());
+        return x[0];
+    }
+
+    public int countPoints() {
+        if (points == null) return 0;
+        return points.size();
+    }
+
+    public List<XYZ> getPointsRecursively() {
+        return getPointsRecursively(new ArrayList());
     }
 
     /**
      * @return the points
      */
-    public List<XYZ> getPoints(List<XYZ> results) {
+    public List<XYZ> getPointsRecursively(List<XYZ> results) {
         if (points != null) {
+            results.addAll(points);
         } else if (numChildren > 0) {
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
-                    List<XYZ> childPoints = children[i].getPoints();
-                    if (childPoints != null) {
-                        results.addAll(childPoints);
-                    }
+                    children[i].getPointsRecursively(results);
                 }
             }
         }
@@ -291,7 +305,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
      *            AABB
      * @return all points with the box volume
      */
-    public List<XYZ> getPointsWithinBox(AABB b) {
+    @Deprecated public List<XYZ> getPointsWithinBox(AABB b) {
         ArrayList<XYZ> results = null;
         if (this.intersectsBox(b)) {
             if (points != null) {
@@ -320,6 +334,42 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return results;
     }
 
+    public void forEachInBox(AABB b, Consumer<XYZ> c) {
+        if (this.intersectsBox(b)) {
+            if (points != null) {
+                for (XYZ q : points) {
+                    if (q.isInAABB(b)) {
+                        c.accept(q);
+                    }
+                }
+            } else if (numChildren > 0) {
+                for (int i = 0; i < 8; i++) {
+                    if (children[i] != null) {
+                        children[i].forEachInBox(b, c);
+                    }
+                }
+            }
+        }
+    }
+    public void forEachInSphere(Sphere s, Consumer<XYZ> c) {
+
+        if (this.intersectsSphere(s)) {
+            if (points != null) {
+                for (XYZ q : points) {
+                    if (s.containsPoint(q)) {
+                        c.accept(q);
+                    }
+                }
+            } else if (numChildren > 0) {
+                for (int i = 0; i < 8; i++) {
+                    AbstractOctree cc = children[i];
+                    if (cc != null) {
+                        cc.forEachInSphere(s, c);
+                    }
+                }
+            }
+        }
+    }
     /**
      * Selects all stored points within the given sphere volume
      *
@@ -356,25 +406,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
         return results;
     }
 
-    public void forEachInSphere(Sphere s, Consumer<XYZ> c) {
 
-        if (this.intersectsSphere(s)) {
-            if (points != null) {
-                for (XYZ q : points) {
-                    if (s.containsPoint(q)) {
-                        c.accept(q);
-                    }
-                }
-            } else if (numChildren > 0) {
-                for (int i = 0; i < 8; i++) {
-                    AbstractOctree cc = children[i];
-                    if (cc != null) {
-                        cc.forEachInSphere(s, c);
-                    }
-                }
-            }
-        }
-    }
 
     /**
      * Selects all stored points within the given sphere volume
@@ -390,7 +422,7 @@ public class AbstractOctree<L> extends AABB implements Shape3D {
     /**
      * @return the size
      */
-    public float getSize() {
+    public float getScale() {
         return size;
     }
 
