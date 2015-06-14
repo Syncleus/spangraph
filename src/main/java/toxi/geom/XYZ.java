@@ -85,5 +85,17 @@ public interface XYZ {
         return box.contains(this);
     }
 
+    default public float magnitude() {
+        return (float) Math.sqrt(magSquared());
+    }
+
+    default public float magSquared() {
+        final float x = x();
+        final float y = y();
+        final float z = z();
+        return x*x + y*y + z*z;
+    }
+
+
     default XYZ copy() { return new Vec3D(this); }
 }

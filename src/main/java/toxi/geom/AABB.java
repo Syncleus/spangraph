@@ -70,24 +70,23 @@ public class AABB extends BB implements Shape3D {
      * Creates a new instance from centre point and uniform extent in all
      * directions.
      * 
-     * @param pos
-     * @param extent
+     * @param center
+     * @param extent half size, radius
      */
-    public AABB(roVec3D pos, float extent) {
-        super(pos);
-        setExtent(new Vec3D(extent, extent, extent));
+    public AABB(roVec3D center, float extent) {
+        this(center, new Vec3D(extent, extent, extent));
     }
 
     /**
      * Creates a new instance from centre point and extent
      * 
-     * @param pos
+     * @param center
      * @param extent
      *            box dimensions (the box will be double the size in each
      *            direction)
      */
-    public AABB(XYZ pos, roVec3D extent) {
-        super(pos);
+    public AABB(XYZ center, Vec3D extent) {
+        super(center);
         setExtent(extent);
     }
 
@@ -368,8 +367,8 @@ public class AABB extends BB implements Shape3D {
      *            new box size
      * @return itself, for method chaining
      */
-    public BB setExtent(roVec3D extent) {
-        this.extent = extent.copy();
+    public BB setExtent(Vec3D extent) {
+        this.extent = extent;
         return updateBounds();
     }
 

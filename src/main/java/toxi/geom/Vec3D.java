@@ -920,13 +920,6 @@ public class Vec3D implements Comparable<roVec3D>, roVec3D {
         return this;
     }
 
-    public final float magnitude() {
-        return (float) Math.sqrt(x * x + y * y + z * z);
-    }
-
-    public final float magSquared() {
-        return x * x + y * y + z * z;
-    }
 
     /**
      * Max self.

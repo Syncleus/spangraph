@@ -21,6 +21,11 @@ public abstract class BB extends Vec3D {
         super(v);
     }
 
+    public BB(Vec3D center, Vec3D radius) {
+        super(center);
+        this.extent = (radius);
+    }
+
     /**
      * Creates a new instance from two vectors specifying opposite corners of
      * the box
@@ -159,11 +164,11 @@ public abstract class BB extends Vec3D {
     }
 
 
-    float minX() { return x - extent.x; }
-    float maxX() { return x + extent.x; }
-    float minY() { return y - extent.y; }
-    float maxY() { return y + extent.y; }
-    float minZ() { return z - extent.z; }
-    float maxZ() { return z + extent.z; }
+    public float minX() { return x - extent.x(); }
+    public float maxX() { return x + extent.x(); }
+    public float minY() { return y - extent.y(); }
+    public float maxY() { return y + extent.y(); }
+    public float minZ() { return z - extent.z(); }
+    public float maxZ() { return z + extent.z(); }
 
 }

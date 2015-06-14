@@ -397,21 +397,7 @@ public interface roVec3D extends XYZ {
      */
     public boolean isZeroVector();
 
-    /**
-     * Calculates the magnitude/eucledian length of the vector.
-     * 
-     * @return vector length
-     */
-    public float magnitude();
 
-    /**
-     * Calculates only the squared magnitude/length of the vector. Useful for
-     * inverse square law applications and/or for speed reasons or if the real
-     * eucledian distance is not required (e.g. sorting).
-     * 
-     * @return squared magnitude (x^2 + y^2 + z^2)
-     */
-    public float magSquared();
 
 
 

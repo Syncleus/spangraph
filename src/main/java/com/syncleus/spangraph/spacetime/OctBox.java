@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
-public class OctBox<V extends XYZ> extends AABB implements Shape3D {
+public class OctBox<V extends XYZ> extends BB implements Shape3D {
 
     /**
      * alternative tree recursion limit, number of world units when cells are
@@ -17,9 +17,6 @@ public class OctBox<V extends XYZ> extends AABB implements Shape3D {
      */
     protected Vec3D resolution;
 
-    /**
-     *
-     */
     public final OctBox parent;
 
     protected OctBox[] children;
@@ -83,9 +80,9 @@ public class OctBox<V extends XYZ> extends AABB implements Shape3D {
     }
 
     public boolean belowResolution() {
-        return extent.x <= resolution.x ||
-                extent.y <= resolution.y ||
-                extent.z <= resolution.z;
+        return extent.x() <= resolution.x ||
+                extent.y() <= resolution.y ||
+                extent.z() <= resolution.z;
     }
     /**
      * Adds a new point/particle to the tree structure. All points are stored
@@ -111,12 +108,12 @@ public class OctBox<V extends XYZ> extends AABB implements Shape3D {
                 if (children == null) {
                     children = new OctBox[8];
                 }
-                int octant = getOctantID(p, min);
+                int octant = getOctantID(p);
                 if (children[octant] == null) {
-                    Vec3D off = min.add(new Vec3D(
-                            (octant & 1) != 0 ? extent.x : 0,
-                            (octant & 2) != 0 ? extent.y : 0,
-                            (octant & 4) != 0 ? extent.z : 0));
+                    Vec3D off = new Vec3D(
+                            minX() + ((octant & 1) != 0 ? extent.x() : 0),
+                            minY() + ((octant & 2) != 0 ? extent.y() : 0),
+                            minZ() + ((octant & 4) != 0 ? extent.z() : 0));
                     children[octant] = new OctBox(this, off,
                             extent.scale(0.5f));
                 }
@@ -179,7 +176,7 @@ public class OctBox<V extends XYZ> extends AABB implements Shape3D {
         // if not a leaf node...
         if (p.isInAABB(this)) {
             if (children!=null) {
-                int octant = getOctantID(p, this);
+                int octant = getOctantID(p);
                 if (children[octant] != null) {
                     return children[octant].getLeafForPoint(p);
                 }
@@ -212,20 +209,20 @@ public class OctBox<V extends XYZ> extends AABB implements Shape3D {
      * @return octant index
      */
     protected final int getOctantID(final Vec3D plocal) {
-        final Vec3D h = this.extent;
+        final XYZ h = this.extent;
 
-        return (plocal.x >= h.x ? 1 : 0) + (plocal.y >= h.y ? 2 : 0)
-                + (plocal.z >= h.z ? 4 : 0);
+        return (plocal.x >= h.x() ? 1 : 0) + (plocal.y >= h.y() ? 2 : 0)
+                + (plocal.z >= h.z() ? 4 : 0);
     }
 
     /** computes getOctantID for the point subtracted by another point,
      *  without needing to allocate a temporary object
 
      */
-    private int getOctantID(final XYZ p, final Vec3D s) {
-        final Vec3D h = this.extent;
-        return ((p.x() - s.x) >= h.x ? 1 : 0) + ((p.y() - s.y) >= h.y? 2 : 0)
-                + ((p.z() - s.z) >= h.z ? 4 : 0);
+    private int getOctantID(final XYZ p) {
+        //final XYZ h = this.extent;
+        return ((p.x() - x) >= 0 ? 1 : 0) + ((p.y() - y) >= 0 ? 2 : 0)
+                + ((p.z() - z) >= 0 ? 4 : 0);
     }
 
 
