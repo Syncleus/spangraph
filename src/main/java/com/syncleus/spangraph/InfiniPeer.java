@@ -40,16 +40,19 @@ public class InfiniPeer extends DefaultCacheManager  {
 
     public final String userID;
 
-    public InfiniPeer(String userID, GlobalConfiguration globalConfig, Configuration config) {
+    public InfiniPeer(GlobalConfiguration globalConfig, Configuration config) {
         super(globalConfig, config);
 
-        this.userID = userID;
+        if (globalConfig.transport()!=null)
+            this.userID = globalConfig.transport().nodeName();
+        else
+            this.userID = null;
 
         addListener(this);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                stop();
+                InfiniPeer.this.stop();
             }
         });
 
@@ -124,6 +127,53 @@ public class InfiniPeer extends DefaultCacheManager  {
 
     }
 
+    public static InfiniPeer the(GlobalConfigurationBuilder gconf, Configuration conf) {
+        return new InfiniPeer(
+
+                gconf.build(),
+                conf
+        );
+    }
+
+
+
+    /** for local only mode on the same host, saved to disk */
+    public static InfiniPeer local(String userID, String diskPath, int maxEntries) {
+
+
+        GlobalConfigurationBuilder globalConfigBuilder = new GlobalConfigurationBuilder();
+
+        globalConfigBuilder.transport().nodeName(userID)
+                .defaultTransport()
+                .addProperty("configurationFile", "fast.xml");
+
+
+
+        globalConfigBuilder.globalJmxStatistics().allowDuplicateDomains(true)
+                .build();
+
+        Configuration config = new ConfigurationBuilder()
+                .persistence()
+                    .addSingleFileStore()
+                    .location(diskPath)
+                    .maxEntries(maxEntries)
+
+
+                .unsafe()
+                .clustering()
+                        //.cacheMode(CacheMode.DIST_SYNC)
+                .cacheMode(CacheMode.DIST_SYNC)
+                .sync()
+                .l1().lifespan(25000L)
+                .hash().numOwners(3)
+                .build();
+
+        return new InfiniPeer(
+                globalConfigBuilder.build(),
+                config
+        );
+
+    }
 
     /** creates a cluster infinipeer */
     public static InfiniPeer cluster(String userID) {
@@ -163,7 +213,6 @@ public class InfiniPeer extends DefaultCacheManager  {
                 .build();
 
         Configuration config = new ConfigurationBuilder()
-
                 .unsafe()
                 .clustering()
                         //.cacheMode(CacheMode.DIST_SYNC)
@@ -174,7 +223,6 @@ public class InfiniPeer extends DefaultCacheManager  {
                 .build();
 
         return new InfiniPeer(
-                userID,
                 globalConfigBuilder.build(),
                 config
         );

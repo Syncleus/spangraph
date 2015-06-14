@@ -50,6 +50,11 @@
             <artifactId>infinispan-embedded</artifactId>
             <version>8.0.0.Alpha1</version>
         </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-embedded-query</artifactId>
+            <version>8.0.0.Alpha1</version>
+        </dependency>
 
 
         <dependency>
