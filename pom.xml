@@ -1,33 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *******************************************************************************
+ *  Copyright: (c) Syncleus, Inc.                                              *
+ *                                                                             *
+ *  You may redistribute and modify this source code under the terms and       *
+ *  conditions of the Open Source Community License - Type C version 1.0       *
+ *  or any later version as published by Syncleus, Inc. at www.syncleus.com.   *
+ *  There should be a copy of the license included with this file. If a copy   *
+ *  of the license is not included you are granted no right to distribute or   *
+ *  otherwise use this file except through a legal and valid license. You      *
+ *  should also contact Syncleus, Inc. at the information below if you cannot  *
+ *  find a license:                                                            *
+ *                                                                             *
+ *  Syncleus, Inc.                                                             *
+ *  2604 South 12th Street                                                     *
+ *  Philadelphia, PA 19148                                                     *
+ *******************************************************************************
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>com.syncleus</groupId>
+        <artifactId>syncleus</artifactId>
+        <version>2-SNAPSHOT</version>
+    </parent>
+
     <version>1.0-SNAPSHOT</version>
-    <groupId>com.syncleus</groupId>
+    <groupId>com.syncleus.tinkerpop.graphs</groupId>
     <artifactId>spangraph</artifactId>
     <packaging>jar</packaging>
 
     <name>spangraph</name>
-    <url>https://syncleus.com</url>
+    <url>http://wiki.syncleus.com</url>
+    <inceptionYear>2015</inceptionYear>
+    <description>
+        Fuses multiple graphs of any back-end into a single unified virtual graph, allowing inter-graph edges as well.
+    </description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <licenses>
+        <license>
+            <name>Open Source Community License - Type C version 1.0 or later</name>
+            <url>http://wiki.syncleus.com/images/3/3b/Oscl-c.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:http://gerrit.syncleus.com/spangraph</connection>
+        <developerConnection>scm:git:ssh://gerrit.syncleus.com:29418/spangraph</developerConnection>
+        <url>http://gerrit.syncleus.com/fusion-graph</url>
+    </scm>
+
+    <ciManagement>
+        <system>jenkins</system>
+        <url>http://builds.syncleus.com/</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://bugs.syncleus.com/</url>
+    </issueManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>Syncleus Announcements</name>
+            <subscribe>syncleus-announce-list+subscribe@syncleus.com</subscribe>
+            <unsubscribe>syncleus-announce-list+unsubscribe@syncleus.com</unsubscribe>
+            <post>syncleus-announce-list@syncleus.com</post>
+            <archive>https://groups.google.com/a/syncleus.com/forum/#!forum/syncleus-announce-list</archive>
+        </mailingList>
+        <mailingList>
+            <name>Syncleus Development</name>
+            <subscribe>syncleus-dev-list+subscribe@syncleus.com</subscribe>
+            <unsubscribe>syncleus-dev-list+unsubscribe@syncleus.com</unsubscribe>
+            <post>syncleus-dev-list@syncleus.com</post>
+            <archive>https://groups.google.com/a/syncleus.com/forum/#!forum/syncleus-dev-list</archive>
+        </mailingList>
+    </mailingLists>
+
+    <developers>
+        <developer>
+            <id>JeffreyPhillipsFreeman</id>
+            <name>Jeffrey Phillips Freeman</name>
+            <email>Jeffrey.Freeman@Syncleus.com</email>
+            <url>http://JeffreyFreeman.me</url>
+            <organization>Syncleus</organization>
+            <organizationUrl>http://www.syncleus.com</organizationUrl>
+            <roles>
+                <role>Chief Technology Officer</role>
+                <role>Project Owner</role>
+                <role>Developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+        <developer>
+            <name>Seth Horne</name>
+            <email>seh999@gmail.com</email>
+            <roles>
+                <role>Developer</role>
+                <role>Tester</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh.releases</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh.snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>ossrh.snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <build>
+        <defaultGoal>package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                    <!--<useIncrementalCompilation>true</useIncrementalCompilation>-->
                 </configuration>
             </plugin>
         </plugins>
-
     </build>
 
     <dependencies>
@@ -36,15 +150,10 @@
             <artifactId>guava</artifactId>
             <version>18.0</version>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
-
-
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-embedded</artifactId>
@@ -55,23 +164,17 @@
             <artifactId>infinispan-embedded-query</artifactId>
             <version>8.0.0.Alpha1</version>
         </dependency>
-
-
         <dependency>
             <groupId>com.tinkerpop.blueprints</groupId>
             <artifactId>blueprints-core</artifactId>
             <version>2.6.0</version>
         </dependency>
-
         <dependency>
             <groupId>com.tinkerpop.blueprints</groupId>
             <artifactId>blueprints-test</artifactId>
             <version>2.6.0</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
-
-
 </project>
 

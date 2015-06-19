@@ -27,7 +27,6 @@
 
 package toxi.geom;
 
-import javafx.scene.shape.TriangleMesh;
 import toxi.geom.Line2D.LineIntersection;
 import toxi.geom.Line2D.LineIntersection.Type;
 import toxi.math.MathUtils;
@@ -507,8 +506,6 @@ public class Polygon2D implements Shape2D, Iterable<Vec2D> {
      * @param y3
      * @param distance
      * @param out
-     * 
-     * @see http://alienryderflex.com/polygon_inset/
      */
     protected void offsetCorner(float x1, float y1, float x2, float y2,
             float x3, float y3, float distance, Vec2D out) {
