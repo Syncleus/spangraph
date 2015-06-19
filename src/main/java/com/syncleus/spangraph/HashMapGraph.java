@@ -16,8 +16,12 @@
  */
 package com.syncleus.spangraph;
 
+import com.tinkerpop.blueprints.Edge;
+
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Uses java.util.LinkedHashMap to implement adjacency
@@ -42,5 +46,15 @@ public class HashMapGraph extends MapGraph {
     @Override
     protected Map newVertexMap() {
         return new LinkedHashMap<>();
+    }
+
+    @Override
+    protected Map<String, Set<Edge>> newVertexEdgeMap() {
+        return new LinkedHashMap();
+    }
+
+    @Override
+    protected Set<Edge> newEdgeSet(int size) {
+        return new LinkedHashSet(size);
     }
 }

@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 /**
  * Peer-to-peer node manager : wraps CacheManager functionality
  *
- * @see https://github.com/belaban/JGroups/tree/master/conf
+ * see: https://github.com/belaban/JGroups/tree/master/conf
  */
 @Listener(sync = true)
 public class InfiniPeer extends DefaultCacheManager  {
@@ -66,11 +66,9 @@ public class InfiniPeer extends DefaultCacheManager  {
 
         addListener(this);
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                InfiniPeer.this.stop();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            InfiniPeer.this.stop();
+        }));
 
 
     }

@@ -43,7 +43,7 @@ public class SpanGraphTest {
         );
     }
 
-    public void testVertexPropagation(Function<String, SpanGraph> graph) throws InterruptedException {
+    public static void testVertexPropagation(Function<String, SpanGraph> graph) throws InterruptedException {
 
         final AtomicReference<SpanGraph> bRef = new AtomicReference(null);
 
@@ -54,7 +54,7 @@ public class SpanGraphTest {
         Vertex vy = a.addVertex("y");
         assertEquals("correct vertex id", vx.getId(), "x");
         assertEquals("correct vertex id", vy.getId(), "y");
-        assertEquals("non-string vertex id", ((MapGraph.MVertex) a.addVertex(17)).getId(), 17);
+        assertEquals("non-string vertex id", a.addVertex(17).getId(), 17);
         assertEquals(3, a.vertexCount());
 
         Thread x = new Thread(() -> {
@@ -90,7 +90,7 @@ public class SpanGraphTest {
         assertEquals(1, a.edgeCount());
         assertEquals(0, a.differentEdges(b).size());
         assertEquals(0, b.differentEdges(a).size());
-        assertEquals("Graphs:\n" + a.toString() + "\n" + b.toString() + "\n", a, b);
+        assertEquals("Graphs:\n" + a.toString() + '\n' + b.toString() + '\n', a, b);
 
 
     }

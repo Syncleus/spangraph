@@ -18,9 +18,12 @@ package com.syncleus.spangraph;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.infinispan.util.concurrent.ConcurrentHashSet;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Blueprints Graph interface with adjacency implemented by Infinispan collections
@@ -51,5 +54,13 @@ public class SpanGraph<X extends Serializable> extends MapGraph<X> {
         return newElementMap("v");
     }
 
+    @Override
+    protected Map<String, Set<Edge>> newVertexEdgeMap() {
+        return new ConcurrentHashMap<>();
+    }
 
+    @Override
+    protected Set<Edge> newEdgeSet(int size) {
+        return new ConcurrentHashSet(size);
+    }
 }

@@ -16,7 +16,11 @@
  */
 package com.syncleus.spangraph;
 
+import com.tinkerpop.blueprints.Edge;
+import org.infinispan.util.concurrent.ConcurrentHashSet;
+
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -42,5 +46,15 @@ public class ConcurrentHashMapGraph extends MapGraph {
     @Override
     protected Map newVertexMap() {
         return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected Map<String, Set<Edge>> newVertexEdgeMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected Set<Edge> newEdgeSet(int size) {
+        return new ConcurrentHashSet<>(size);
     }
 }

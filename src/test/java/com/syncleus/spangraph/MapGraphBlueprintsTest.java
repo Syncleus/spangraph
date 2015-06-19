@@ -81,7 +81,9 @@ public class MapGraphBlueprintsTest extends GraphTest {
 //    }
 
     public Graph generateGraph() {
-        return new ConcurrentHashMapGraph();
+        ConcurrentHashMapGraph g = new ConcurrentHashMapGraph();
+        g.setRequireEdgeLabels(true); //for compliance
+        return g;
     }
 
     @Override

@@ -35,7 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 abstract public class MapGraph<X extends Serializable> implements Graph {
 
-    private static Map<String,MapGraph> global = new WeakValueHashMap<>();
+    final private static Map<String,MapGraph> global = new WeakValueHashMap<>();
+
+    /** blank string used if null labels are allowed and none is specified */
+    public static final String DEFAULT_EDGE_LABEL = "";
 
     /** name of the graph combined with the peerID */
     public final String id;
@@ -88,6 +91,8 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         FEATURES.supportsThreadIsolatedTransactions = false;
 
     }
+
+    private boolean requireEdgeLabels = false;
 
     public int vertexCount() {
         return vertexCollection().size();
@@ -144,6 +149,10 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         return r;
     }
 
+    public void setRequireEdgeLabels(boolean requireEdgeLabels) {
+        this.requireEdgeLabels = requireEdgeLabels;
+    }
+
     public MVertex<X> addVertex(Object id) {
 
 
@@ -156,7 +165,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             }
         }
 
-        MVertex<X> vertex = new MVertex<X>((X) id, this);
+        MVertex<X> vertex = new MVertex<X>((X) id, this, newVertexEdgeMap(), newVertexEdgeMap());
         this.vertices.put(vertex.id, vertex);
         return vertex;
     }
@@ -277,9 +286,9 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         return addEdge(edgeID, o, i, null);
     }
 
-    public Edge addEdge(Object id, final Vertex outVertex, final Vertex inVertex, final String label) {
-        /*if (label == null)
-            throw ExceptionFactory.edgeLabelCanNotBeNull();*/
+    public Edge addEdge(Object id, final Vertex outVertex, final Vertex inVertex, String label) {
+        if (requireEdgeLabels && label == null)
+            throw ExceptionFactory.edgeLabelCanNotBeNull();
 
 
 
@@ -288,8 +297,12 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
                 throw ExceptionFactory.edgeWithIdAlreadyExist(id);
             }
         } else {
-            id = newID();
+            String nid = newID();
+            id = nid;
         }
+
+        if (label == null)
+            label = DEFAULT_EDGE_LABEL;
 
         MEdge<X> edge = new MEdge<X>((X)id,
                 (MVertex)outVertex,
@@ -306,7 +319,7 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
     public void removeEdge(final Edge edge) {
 
-        if (null == this.edges.remove(edge.getId().toString())) {
+        if (null == this.edges.remove(edge.getId())) {
             return;
         }
 
@@ -314,12 +327,14 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         MVertex<X> outVertex = ((MEdge) edge).outVertex;
         MVertex<X> inVertex = ((MEdge) edge).inVertex;
 
-        Object edgeID = edge.getId();
+
         if (null != outVertex && null != outVertex.outEdges) {
-            outVertex.remove(edgeID, false);
+            if (!outVertex.remove(edge, true))
+                throw new RuntimeException("edge " + edge + " unable not removed from outVertex + " + outVertex);
         }
         if (null != inVertex && null != inVertex.inEdges) {
-            inVertex.remove(edgeID, true);
+            if (!inVertex.remove(edge, false))
+                throw new RuntimeException("edge " + edge + " unable not removed from inVertex + " + outVertex);
         }
 
 
@@ -559,13 +574,20 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
     }
 
 
+    abstract protected Map<String, Set<Edge>> newVertexEdgeMap();
+    abstract protected Set<Edge> newEdgeSet(int size);
+
     public static class MVertex<X extends Serializable> extends MElement<X> implements Vertex, Serializable {
 
-        public final Map<String, Set<Edge>> outEdges = new LinkedHashMap();
-        public final Map<String, Set<Edge>> inEdges = new LinkedHashMap();
+        public final Map<String, Set<Edge>> outEdges;
+        public final Map<String, Set<Edge>> inEdges;
 
-        protected MVertex(final X id, final MapGraph<X> graph) {
+        protected MVertex(final X id, final MapGraph<X> graph,
+                          Map<String, Set<Edge>> iEdges,
+                          Map<String, Set<Edge>> oEdges) {
             super(id, graph);
+            this.outEdges = oEdges;
+            this.inEdges = iEdges;
         }
 
         public Iterable<Edge> getEdges(final Direction direction, final String... labels) {
@@ -632,7 +654,8 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
 
         private Set<Edge> newEdgeSet(int size) {
-            return new LinkedHashSet<Edge>(size);
+
+            return graph().newEdgeSet(size);
         }
 
 
@@ -655,9 +678,13 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
         }
 
 
-        public boolean remove(Object edgeID, boolean incoming) {
+        public boolean remove(Edge edge, boolean incoming) {
             Map<String, Set<Edge>> target = incoming ? outEdges : inEdges;
-            if (target.remove(edgeID)!=null) {
+
+            Set<Edge> ss = target.get(edge.getLabel());
+            if (ss == null) return false;
+
+            if (ss.remove(edge)) {
                 graph().update(this);
                 return true;
             }
@@ -705,6 +732,10 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
 
         protected MEdge(final X id, final MVertex<X> outVertex, final MVertex<X> inVertex, final String label, final MapGraph<X> graph) {
             super(id, graph);
+
+            if (label == null)
+                throw new RuntimeException("edge label can not be null");
+
             this.label = label;
             this.outVertex = outVertex;
             this.inVertex = inVertex;
@@ -758,6 +789,14 @@ abstract public class MapGraph<X extends Serializable> implements Graph {
             if (label!=null)
                     sb.append(getLabel());
             return sb.append("->").append(getVertex(Direction.IN).getId()).append(']').toString();
+        }
+
+        @Override
+        public boolean hasProperty(String k, Object value) {
+            if (k.equals(StringFactory.LABEL))
+                return label.equals(value);
+
+            return super.hasProperty(k, value);
         }
 
         @Override

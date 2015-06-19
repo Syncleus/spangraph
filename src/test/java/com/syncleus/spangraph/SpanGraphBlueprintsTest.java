@@ -34,7 +34,9 @@ public class SpanGraphBlueprintsTest extends MapGraphBlueprintsTest {
 
     public static int n = 0;
     public Graph generateGraph() {
-        return new SpanGraph("test" + (n++), local);
+        MapGraph g = new SpanGraph("test" + (n++), local);
+        g.setRequireEdgeLabels(true); //for compliance
+        return g;
     }
 
 }
