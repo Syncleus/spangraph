@@ -1,6 +1,6 @@
 package com.syncleus.spangraph.spacetime;
 
-import toxi.geom.*;
+import com.syncleus.toxi.geom.*;
 
 import java.util.ArrayList;
 import java.util.Collection;

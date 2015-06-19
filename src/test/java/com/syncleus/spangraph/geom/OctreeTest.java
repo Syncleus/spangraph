@@ -2,9 +2,9 @@ package com.syncleus.spangraph.geom;
 
 import com.syncleus.spangraph.spacetime.OctBox;
 import org.junit.Test;
-import toxi.geom.AABB;
-import toxi.geom.BB;
-import toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.AABB;
+import com.syncleus.toxi.geom.BB;
+import com.syncleus.toxi.geom.Vec3D;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package com.syncleus.spangraph.spacetime;
 
-import toxi.geom.Vec3D;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.XYZ;
 
 import java.util.*;
 

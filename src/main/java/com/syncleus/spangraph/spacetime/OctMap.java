@@ -3,8 +3,8 @@ package com.syncleus.spangraph.spacetime;
 
 import com.syncleus.spangraph.InfiniPeer;
 import org.infinispan.Cache;
-import toxi.geom.Vec3D;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.XYZ;
 
 import java.util.Collection;
 import java.util.Map;

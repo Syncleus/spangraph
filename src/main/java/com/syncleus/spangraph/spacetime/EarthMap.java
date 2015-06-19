@@ -1,8 +1,8 @@
 package com.syncleus.spangraph.spacetime;
 
 import com.syncleus.spangraph.InfiniPeer;
-import toxi.geom.Vec3D;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.XYZ;
 
 /**
  * PlanetMap preconfigured for Earth's known dimensions and irregular sphericity */

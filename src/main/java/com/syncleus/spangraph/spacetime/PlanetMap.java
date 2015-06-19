@@ -1,8 +1,8 @@
 package com.syncleus.spangraph.spacetime;
 
 import com.syncleus.spangraph.InfiniPeer;
-import toxi.geom.Vec3D;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.XYZ;
 
 /**
  * OctMap with special handling for planetary coordinates and spheroid geometry.

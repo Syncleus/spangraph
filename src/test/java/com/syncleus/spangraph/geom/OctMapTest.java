@@ -3,8 +3,8 @@ package com.syncleus.spangraph.geom;
 import com.syncleus.spangraph.InfiniPeer;
 import com.syncleus.spangraph.spacetime.OctMap;
 import org.junit.Test;
-import toxi.geom.Vec3D;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.Vec3D;
+import com.syncleus.toxi.geom.XYZ;
 
 import java.io.Serializable;
 

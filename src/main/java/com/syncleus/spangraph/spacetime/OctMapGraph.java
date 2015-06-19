@@ -3,7 +3,7 @@ package com.syncleus.spangraph.spacetime;
 import com.syncleus.spangraph.MapGraph;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import toxi.geom.XYZ;
+import com.syncleus.toxi.geom.XYZ;
 
 /**
  * OctMapped indexes vertices in a Graph
