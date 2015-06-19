@@ -36,7 +36,7 @@
     <url>http://wiki.syncleus.com</url>
     <inceptionYear>2015</inceptionYear>
     <description>
-        Fuses multiple graphs of any back-end into a single unified virtual graph, allowing inter-graph edges as well.
+        A Tinkerpop Graph driver for the infinispan backend.
     </description>
 
     <licenses>
